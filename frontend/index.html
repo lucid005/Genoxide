@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genoxide - Gene Information</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Genoxide</h1>
+        <div class="input-box">
+            <input type="text" id="geneInput" placeholder="Enter Gene Name">
+            <button onclick="getGeneData()">Search</button>
+        </div>
+
+        <p id="loadingMessage" style="display: none;">Searching...</p>
+        <div id="geneDetails"></div>
+    </div>
+    <script>
+        async function getGeneData() {
+            const geneName = document.getElementById('geneInput').value;
+            const geneDetailsElement = document.getElementById('geneDetails');
+            const loadingMessage = document.getElementById('loadingMessage');
+
+            if (!geneName) {
+                alert("Please enter a gene name.");
+                return;
+            }
+
+            // Show the loading message
+            loadingMessage.style.display = 'block';
+            geneDetailsElement.innerHTML = ''; // Clear previous results
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/gene/${geneName}/`);
+                const data = await response.json();
+
+                // Hide loading message once the data is fetched
+                loadingMessage.style.display = 'none';
+
+                if (data.error) {
+                    geneDetailsElement.innerHTML = `<p style="color:red">${data.error}</p>`;
+                } else {
+                    const details = `
+                        <h2>Gene: ${data.gene_name}</h2>
+                        <p><strong>Description:</strong> ${data.description}</p>
+                        <p><strong>Chromosome:</strong> ${data.chromosome}</p>
+                        <p><strong>Start:</strong> ${data.start}</p>
+                        <p><strong>End:</strong> ${data.end}</p>
+                        <p><strong>Strand:</strong> ${data.strand}</p>
+                        <p><strong>External IDs:</strong> ${data.external_ids.join(', ')}</p>
+                        <p><strong>Related Drugs:</strong> ${data.related_drugs.length > 0 ? data.related_drugs.join(', ') : 'No drugs found.'}</p>
+                    `;
+                    geneDetailsElement.innerHTML = details;
+                }
+            } catch (error) {
+                console.error(error);
+                loadingMessage.style.display = 'none';
+                geneDetailsElement.innerHTML = '<p style="color:red">Error fetching gene data.</p>';
+            }
+        }
+    </script>
+</body>
+
+</html>
